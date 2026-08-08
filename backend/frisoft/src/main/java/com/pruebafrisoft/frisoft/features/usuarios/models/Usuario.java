@@ -1,4 +1,4 @@
-package com.pruebafrisoft.frisoft.usuarios.models;
+package com.pruebafrisoft.frisoft.features.usuarios.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
