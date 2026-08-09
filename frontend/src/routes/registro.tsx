@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { ApiError } from "../lib/http-client";
 import { useRegistrarUsuarioMutation } from "../features/registro/api";
 import {
@@ -10,7 +10,12 @@ import {
   validarRequerido,
 } from "../lib/validators";
 
+const registroSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/registro")({
+  validateSearch: registroSearchSchema,
   component: RegistroPage,
 });
 
@@ -22,12 +27,31 @@ interface RegistroFormValues {
   confirmPassword: string;
 }
 
-const REDIRECT_DELAY_MS = 2000;
+const ESTADO_REGISTRO_EXITOSO: Record<string, unknown> = {
+  registroExitoso: true,
+};
+
+/**
+ * Resuelve la ruta de destino tras un registro exitoso. Si `redirect` está
+ * presente y es misma-origen, se usa esa ruta; en caso contrario se cae a
+ * `/login`. El guard de rutas privadas redirige a login con `?redirect=...`,
+ * por lo que este parámetro puede llegar como URL completa.
+ */
+function resolverRutaDestino(redirect?: string): string {
+  if (!redirect) return "/login";
+  try {
+    const url = new URL(redirect, window.location.origin);
+    if (url.origin !== window.location.origin) return "/login";
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return "/login";
+  }
+}
 
 function RegistroPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const mutation = useRegistrarUsuarioMutation();
-  const [registroExitoso, setRegistroExitoso] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -45,33 +69,16 @@ function RegistroPage() {
           correo: value.correo.trim(),
           password: value.password,
         });
-        setRegistroExitoso(true);
+        form.reset();
+        navigate({
+          to: resolverRutaDestino(redirect) as never,
+          state: ESTADO_REGISTRO_EXITOSO,
+        });
       } catch {
         // El error queda expuesto en mutation.error y se muestra debajo del formulario.
       }
     },
   });
-
-  useEffect(() => {
-    if (!registroExitoso) return;
-    const timer = setTimeout(() => {
-      navigate({ to: "/login" });
-    }, REDIRECT_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [registroExitoso, navigate]);
-
-  if (registroExitoso) {
-    return (
-      <div>
-        <h2>Registro exitoso</h2>
-        <p>
-          Tu cuenta fue creada correctamente. Serás redirigido a la pantalla
-          de inicio de sesión en unos segundos.
-        </p>
-        <Link to="/login">Ir a iniciar sesión ahora</Link>
-      </div>
-    );
-  }
 
   const errorMessage =
     mutation.error instanceof ApiError
