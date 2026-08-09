@@ -11,9 +11,14 @@ import org.springframework.stereotype.Service;
 
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.LogoutResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.RefreshResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.UsuarioResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CredencialesInvalidasException;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CuentaInactivaException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenExpiradoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenInvalidoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenRevocadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.RefreshToken;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
 import com.pruebafrisoft.frisoft.features.usuarios.repositories.RefreshTokenRepository;
@@ -57,6 +62,44 @@ public class AuthService {
 				TOKEN_TYPE_BEARER,
 				jwtProperties.getExpiration() / 1000,
 				UsuarioResponse.from(usuario));
+	}
+
+	public RefreshResponse refresh(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank()) {
+			throw new RefreshTokenInvalidoException();
+		}
+		RefreshToken token = buscarTokenActivo(refreshToken);
+		Usuario usuario = token.getUsuario();
+		if (usuario.getFechaEliminacion() != null) {
+			throw new CuentaInactivaException();
+		}
+		String accessToken = jwtUtils.generateToken(usuario.getCorreo());
+		return new RefreshResponse(accessToken, TOKEN_TYPE_BEARER, jwtProperties.getExpiration() / 1000);
+	}
+
+	public LogoutResponse logout(String refreshToken) {
+		if (refreshToken != null && !refreshToken.isBlank()) {
+			String hash = hashToken(refreshToken);
+			refreshTokenRepository.findByTokenHash(hash)
+					.filter(rt -> !rt.isRevocado())
+					.ifPresent(rt -> {
+						rt.setRevocado(true);
+						refreshTokenRepository.save(rt);
+					});
+		}
+		return new LogoutResponse("Sesion cerrada correctamente");
+	}
+
+	private RefreshToken buscarTokenActivo(String refreshToken) {
+		RefreshToken token = refreshTokenRepository.findByTokenHashConUsuario(hashToken(refreshToken))
+				.orElseThrow(RefreshTokenInvalidoException::new);
+		if (token.isRevocado()) {
+			throw new RefreshTokenRevocadoException();
+		}
+		if (token.getFechaExpiracion().isBefore(LocalDateTime.now())) {
+			throw new RefreshTokenExpiradoException();
+		}
+		return token;
 	}
 
 	private String generarRefreshToken(Usuario usuario) {
