@@ -9,11 +9,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.LogoutResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.RefreshResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.RefreshTokenRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.UsuarioResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CredencialesInvalidasException;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CuentaInactivaException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenExpiradoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenInvalidoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.RefreshTokenRevocadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
 import com.pruebafrisoft.frisoft.features.usuarios.services.AuthService;
 import com.pruebafrisoft.frisoft.features.usuarios.services.UsuarioService;
@@ -53,6 +59,24 @@ public class UsuarioController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(ErrorResponse.of(ErrorType.UNAUTHORIZED.getCode(), ex.getMessage()));
 		}
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
+		try {
+			RefreshResponse response = authService.refresh(request.refreshToken());
+			return ResponseEntity.ok(response);
+		} catch (RefreshTokenInvalidoException | RefreshTokenExpiradoException | RefreshTokenRevocadoException
+				| CuentaInactivaException ex) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(ErrorResponse.of(ErrorType.UNAUTHORIZED.getCode(), ex.getMessage()));
+		}
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<?> logout(@RequestBody RefreshTokenRequest request) {
+		LogoutResponse response = authService.logout(request.refreshToken());
+		return ResponseEntity.ok(response);
 	}
 
 }
