@@ -1,10 +1,12 @@
 package com.pruebafrisoft.frisoft.features.usuarios.services;
 
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
 import com.pruebafrisoft.frisoft.features.usuarios.repositories.UsuarioRepository;
 import com.pruebafrisoft.frisoft.utils.PasswordUtils;
@@ -15,11 +17,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioService {
 
+	private static final Pattern CORREO_PATTERN = Pattern
+			.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+	private static final Pattern PASSWORD_PATTERN = Pattern
+			.compile("^(?=.*[A-Za-z])(?=.*\\d).{8,}$");
+
 	private final UsuarioRepository usuarioRepository;
 	private final PasswordUtils passwordUtils;
 
 	public Usuario registrar(RegistroUsuarioRequest request) {
 		validarCamposObligatorios(request);
+		validarFormatoCorreo(request.correo());
+		validarPoliticaPassword(request.password());
+		validarCorreoNoDuplicado(request.correo());
 
 		Usuario usuario = new Usuario();
 		usuario.setNombre(request.nombre());
@@ -48,6 +59,25 @@ public class UsuarioService {
 
 	private boolean esVacio(String valor) {
 		return valor == null || valor.isBlank();
+	}
+
+	private void validarFormatoCorreo(String correo) {
+		if (!CORREO_PATTERN.matcher(correo).matches()) {
+			throw new IllegalArgumentException("El formato del correo no es valido");
+		}
+	}
+
+	private void validarPoliticaPassword(String password) {
+		if (!PASSWORD_PATTERN.matcher(password).matches()) {
+			throw new IllegalArgumentException(
+					"La contrasena debe tener al menos 8 caracteres e incluir al menos una letra y un numero");
+		}
+	}
+
+	private void validarCorreoNoDuplicado(String correo) {
+		if (usuarioRepository.existsByCorreo(correo)) {
+			throw new CorreoDuplicadoException("El correo ya se encuentra registrado");
+		}
 	}
 
 }

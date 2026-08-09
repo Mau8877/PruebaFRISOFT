@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.UsuarioResponse;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
 import com.pruebafrisoft.frisoft.features.usuarios.services.UsuarioService;
 import com.pruebafrisoft.frisoft.response.error.ErrorResponse;
@@ -31,6 +32,9 @@ public class UsuarioController {
 		} catch (IllegalArgumentException ex) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(ErrorResponse.of(ErrorType.BAD_REQUEST.getCode(), ex.getMessage()));
+		} catch (CorreoDuplicadoException ex) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body(ErrorResponse.of(ErrorType.CONFLICT.getCode(), ex.getMessage()));
 		}
 	}
 
