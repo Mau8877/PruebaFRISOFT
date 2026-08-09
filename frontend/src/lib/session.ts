@@ -1,4 +1,5 @@
 const TOKEN_STORAGE_KEY = "frisoft_auth_token";
+const REFRESH_TOKEN_STORAGE_KEY = "frisoft_refresh_token";
 
 function decodeJwtPayload(token: string): { exp?: number } | null {
   const payload = token.split(".")[1];
@@ -26,6 +27,28 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+}
+
+export function setRefreshToken(token: string): void {
+  localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
+}
+
+export function clearRefreshToken(): void {
+  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+}
+
+export function setSession(accessToken: string, refreshToken: string): void {
+  setToken(accessToken);
+  setRefreshToken(refreshToken);
+}
+
+export function clearSession(): void {
+  clearToken();
+  clearRefreshToken();
 }
 
 /** Un token es válido si existe, es decodificable y no está expirado. */
