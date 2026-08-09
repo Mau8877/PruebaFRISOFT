@@ -7,10 +7,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginRequest;
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.LoginResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.UsuarioResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CredencialesInvalidasException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CuentaInactivaException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
+import com.pruebafrisoft.frisoft.features.usuarios.services.AuthService;
 import com.pruebafrisoft.frisoft.features.usuarios.services.UsuarioService;
 import com.pruebafrisoft.frisoft.response.error.ErrorResponse;
 import com.pruebafrisoft.frisoft.response.error.ErrorType;
@@ -23,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioController {
 
 	private final UsuarioService usuarioService;
+	private final AuthService authService;
 
 	@PostMapping("/registro")
 	public ResponseEntity<?> registrar(@RequestBody RegistroUsuarioRequest request) {
@@ -35,6 +41,17 @@ public class UsuarioController {
 		} catch (CorreoDuplicadoException ex) {
 			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body(ErrorResponse.of(ErrorType.CONFLICT.getCode(), ex.getMessage()));
+		}
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+		try {
+			LoginResponse response = authService.login(request);
+			return ResponseEntity.ok(response);
+		} catch (CredencialesInvalidasException | CuentaInactivaException ex) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(ErrorResponse.of(ErrorType.UNAUTHORIZED.getCode(), ex.getMessage()));
 		}
 	}
 
