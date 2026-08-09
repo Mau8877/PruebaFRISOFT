@@ -5,18 +5,13 @@ export const Route = createRootRoute({
   component: RootComponent,
 });
 
+// Shell técnico raíz: no conoce el estado de sesión, por lo que no incluye
+// navegación de la app. La navegación principal vive en AppShell, dentro del
+// layout `_authenticated`, ya que solo aplica a rutas privadas.
 function RootComponent() {
   return (
     <>
-      <div>
-        <nav>
-          <h1>Mi App con TanStack</h1>
-          {/* Aquí puedes añadir navegación */}
-        </nav>
-        <main>
-          <Outlet />
-        </main>
-      </div>
+      <Outlet />
       {import.meta.env.DEV && <TanStackRouterDevtools />}
     </>
   );
