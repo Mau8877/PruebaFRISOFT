@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.ActualizarPerfilRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.UsuarioNoEncontradoException;
@@ -23,6 +24,9 @@ public class UsuarioService {
 
 	private static final Pattern PASSWORD_PATTERN = Pattern
 			.compile("^(?=.*[A-Za-z])(?=.*\\d).{8,}$");
+
+	private static final int NOMBRE_APELLIDO_LONGITUD_MINIMA = 2;
+	private static final int NOMBRE_APELLIDO_LONGITUD_MAXIMA = 150;
 
 	private final UsuarioRepository usuarioRepository;
 	private final PasswordUtils passwordUtils;
@@ -46,6 +50,30 @@ public class UsuarioService {
 	public Usuario obtenerPorCorreo(String correo) {
 		return usuarioRepository.findByCorreo(correo)
 				.orElseThrow(UsuarioNoEncontradoException::new);
+	}
+
+	public Usuario actualizarPerfil(String correo, ActualizarPerfilRequest request) {
+		validarNombreOApellido(request.nombre(), "nombre");
+		validarNombreOApellido(request.apellido(), "apellido");
+
+		Usuario usuario = obtenerPorCorreo(correo);
+		usuario.setNombre(request.nombre().trim());
+		usuario.setApellido(request.apellido().trim());
+		usuario.setFechaActualizacion(LocalDateTime.now());
+
+		return usuarioRepository.save(usuario);
+	}
+
+	private void validarNombreOApellido(String valor, String campo) {
+		if (esVacio(valor)) {
+			throw new IllegalArgumentException("El " + campo + " es obligatorio");
+		}
+		int longitud = valor.trim().length();
+		if (longitud < NOMBRE_APELLIDO_LONGITUD_MINIMA || longitud > NOMBRE_APELLIDO_LONGITUD_MAXIMA) {
+			throw new IllegalArgumentException(
+					"El " + campo + " debe tener entre " + NOMBRE_APELLIDO_LONGITUD_MINIMA + " y "
+							+ NOMBRE_APELLIDO_LONGITUD_MAXIMA + " caracteres");
+		}
 	}
 
 	private void validarCamposObligatorios(RegistroUsuarioRequest request) {

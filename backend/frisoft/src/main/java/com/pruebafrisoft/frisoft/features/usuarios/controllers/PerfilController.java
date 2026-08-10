@@ -4,9 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pruebafrisoft.frisoft.features.usuarios.dtos.ActualizarPerfilRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.PerfilResponse;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.UsuarioNoEncontradoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
@@ -31,6 +34,21 @@ public class PerfilController {
 		} catch (UsuarioNoEncontradoException ex) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 					.body(ErrorResponse.of(ErrorType.UNAUTHORIZED.getCode(), ex.getMessage()));
+		}
+	}
+
+	@PutMapping("/me")
+	public ResponseEntity<?> actualizarPerfil(Authentication authentication,
+			@RequestBody ActualizarPerfilRequest request) {
+		try {
+			Usuario usuario = usuarioService.actualizarPerfil(authentication.getName(), request);
+			return ResponseEntity.ok(PerfilResponse.from(usuario));
+		} catch (UsuarioNoEncontradoException ex) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(ErrorResponse.of(ErrorType.UNAUTHORIZED.getCode(), ex.getMessage()));
+		} catch (IllegalArgumentException ex) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(ErrorResponse.of(ErrorType.BAD_REQUEST.getCode(), ex.getMessage()));
 		}
 	}
 
