@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.pruebafrisoft.frisoft.features.usuarios.dtos.RegistroUsuarioRequest;
 import com.pruebafrisoft.frisoft.features.usuarios.exceptions.CorreoDuplicadoException;
+import com.pruebafrisoft.frisoft.features.usuarios.exceptions.UsuarioNoEncontradoException;
 import com.pruebafrisoft.frisoft.features.usuarios.models.Usuario;
 import com.pruebafrisoft.frisoft.features.usuarios.repositories.UsuarioRepository;
 import com.pruebafrisoft.frisoft.utils.PasswordUtils;
@@ -40,6 +41,11 @@ public class UsuarioService {
 		usuario.setFechaCreacion(LocalDateTime.now());
 
 		return usuarioRepository.save(usuario);
+	}
+
+	public Usuario obtenerPorCorreo(String correo) {
+		return usuarioRepository.findByCorreo(correo)
+				.orElseThrow(UsuarioNoEncontradoException::new);
 	}
 
 	private void validarCamposObligatorios(RegistroUsuarioRequest request) {
