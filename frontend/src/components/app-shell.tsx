@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { clearToken } from "../lib/session";
+import { authStore } from "../lib/auth-store";
 
 interface AppShellProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
 
   function handleLogout() {
-    clearToken();
+    authStore.logout();
     navigate({ to: "/login" });
   }
 

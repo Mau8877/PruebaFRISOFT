@@ -1,8 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  createFileRoute,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { z } from "zod";
 import { ApiError } from "../lib/http-client";
 import { useRegistrarUsuarioMutation } from "../features/registro/api";
+import { authStore } from "../lib/auth-store";
 import {
   validarConfirmacionPassword,
   validarCorreo,
@@ -16,6 +22,11 @@ const registroSearchSchema = z.object({
 
 export const Route = createFileRoute("/registro")({
   validateSearch: registroSearchSchema,
+  beforeLoad: () => {
+    if (authStore.getSnapshot().isAuthenticated) {
+      throw redirect({ to: "/" });
+    }
+  },
   component: RegistroPage,
 });
 

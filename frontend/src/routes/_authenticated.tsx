@@ -1,10 +1,10 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import { AppShell } from "../components/app-shell";
-import { isAuthenticated } from "../lib/session";
+import { authStore } from "../lib/auth-store";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ location }) => {
-    if (!isAuthenticated()) {
+    if (!authStore.getSnapshot().isAuthenticated) {
       throw redirect({
         to: "/login",
         search: { redirect: location.href },

@@ -1,4 +1,5 @@
-import { clearToken, getToken } from "./session";
+import { authStore } from "./auth-store";
+import { getToken } from "./session";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -68,7 +69,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (response.status === 401 || response.status === 403) {
     const { message, code } = await parseErrorBody(response);
-    clearToken();
+    authStore.logout();
     redirectToLogin();
     throw new ApiError(response.status, message, code);
   }

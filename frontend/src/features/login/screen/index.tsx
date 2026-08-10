@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   Link,
   useLocation,
@@ -6,7 +5,6 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { ApiError } from "../../../lib/http-client";
-import { isAuthenticated } from "../../../lib/session";
 import { useLoginMutation } from "../api";
 import { LoginForm } from "../components";
 import "../styles";
@@ -35,12 +33,6 @@ export function LoginScreen() {
   });
   const mutation = useLoginMutation();
   const redirect = (location.search as { redirect?: unknown }).redirect;
-
-  useEffect(() => {
-    if (isAuthenticated()) {
-      navigate({ to: "/" });
-    }
-  }, [navigate]);
 
   const errorMessage =
     mutation.error instanceof ApiError
