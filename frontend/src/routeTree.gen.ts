@@ -13,6 +13,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -33,15 +34,22 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -49,15 +57,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/registro': typeof RegistroRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/registro'
+  fullPaths: '/' | '/login' | '/registro' | '/perfil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/registro' | '/'
+  to: '/login' | '/registro' | '/perfil' | '/'
   id:
-    '__root__' | '/_authenticated' | '/login' | '/registro' | '/_authenticated/'
+    | '__root__'
+    | '/_authenticated'
+    | '/login'
+    | '/registro'
+    | '/_authenticated/perfil'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -96,14 +110,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

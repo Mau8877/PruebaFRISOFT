@@ -22,6 +22,9 @@ export function AppShell({ children }: AppShellProps) {
           <Link to="/" activeProps={{ "aria-current": "page" }}>
             Inicio
           </Link>
+          <Link to="/perfil" activeProps={{ "aria-current": "page" }}>
+            Mi perfil
+          </Link>
         </nav>
         <button type="button" onClick={handleLogout}>
           Cerrar sesión

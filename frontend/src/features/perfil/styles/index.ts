@@ -1,0 +1,3 @@
+import "./perfil.css";
+
+export {};
